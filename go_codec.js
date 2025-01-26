@@ -46,7 +46,7 @@ function line_block_to_square_grid(boards, width, pprint = true) {
     .map(line_board_to_square_slices);
 
   if (!width) {
-    width = Math.min(12, Math.ceil(Math.sqrt(slices.length)));
+    width = Math.min(12, Math.ceil(slices.length / 5));
   }
 
   const grid = [];
