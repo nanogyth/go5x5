@@ -1,13 +1,43 @@
 /** @param {NS} ns */
 export async function main(ns) {
-  const code = ns_to_code(ns);
-  ns.tprintf(code);
+  // const code = ns_to_code(ns);
+  // ns.tprintf(code);
 
-  const new_boards = decode_to_boards(code);
-  ns.tprintf(pretty(new_boards));
+  // const new_boards = decode_to_boards(code);
+  // ns.tprintf(line_block_to_square_grid(new_boards));
 
-  // const code2 = "ace>MiNqLgHsRoVpKxU<pq>qP<q>tFwB<g>jg<b>q<fhklmnpruv>MlHrn<hm>";
-  // ns.tprintf(pretty(line_boards_to_square_boards(decode_to_boards(code2))));
+  const code2 = "ace>MiNqLgHsRoVpKxU<pq>qP<q>tFwB<g>jg<b>q<fhklmnpruv>MlHrn<hm>";
+  ns.tprintf(line_block_to_square_grid(decode_to_boards(code2)));
+}
+
+function line_block_to_square_grid(boards, width, pprint = true) {
+  const slices = boards
+    .split("\n")
+    .map(line_board_to_square_slices);
+
+  if (!width) {
+    width = Math.min(12, Math.ceil(Math.sqrt(slices.length)));
+  }
+
+  const grid = [];
+  for (let i = 0; i < slices.length; i += width) {
+    const row = [];
+    const wide = Math.min(width, slices.length - i)
+    for (let j = 0; j < 5; j++) {
+      const line = [];
+      for (let k = 0; k < wide; k++) {
+        line.push(slices[i + k][j]);
+      }
+      row.push(line.join(" "));
+    }
+    grid.push(row.join("\n"));
+  }
+  
+  const out = grid.join("\n\n");
+  if (pprint) {
+    return pretty(out);
+  }
+  return out;
 }
 
 function ns_to_code(ns) {
@@ -33,6 +63,11 @@ function line_board_to_square_board(board) {
   return [0, 5, 10, 15, 20]
     .map(i => board.slice(i, i + 5))
     .join("\n");
+}
+
+function line_board_to_square_slices(board) {
+  return [0, 5, 10, 15, 20]
+    .map(i => board.slice(i, i + 5));
 }
 
 function state_to_flat_string(state) {
@@ -84,7 +119,7 @@ function add_move(board, m) {
   }
 }
 
-function add_captures(board, captures){
+function add_captures(board, captures) {
   for (const c of captures) {
     board[char_to_i(c)] = ",";
   }
