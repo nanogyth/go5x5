@@ -1,13 +1,43 @@
 /** @param {NS} ns */
 export async function main(ns) {
-  // const code = ns_to_code(ns);
-  // ns.tprintf(code);
+  const [code] = ns.args;
+  if (code) {
+    ns.tprintf(line_block_to_square_grid(decode_to_boards(code)));
+    return
+  }
 
-  // const new_boards = decode_to_boards(code);
-  // ns.tprintf(line_block_to_square_grid(new_boards));
+  while (true) {
+    await wait_for_game_start(ns);
+    await wait_for_game_end(ns);
+    ns.write("go_games.txt", `${ns_to_code(ns)}\n`, "a");
+    ns.toast("Go game saved");
+    await ns.sleep(1_000);
+  }
+}
 
-  const code2 = "ace>MiNqLgHsRoVpKxU<pq>qP<q>tFwB<g>jg<b>q<fhklmnpruv>MlHrn<hm>";
-  ns.tprintf(line_block_to_square_grid(decode_to_boards(code2)));
+async function wait_for_game_start(ns) {
+  while ("None" === ns.go.getCurrentPlayer()) {
+    await ns.sleep(1_000);
+  }
+  // after selecting a new subnet player is black
+  // but turn.type stays gameOver until black moves
+  while (true) {
+    const turn = await ns.go.opponentNextTurn();
+    await ns.sleep(1_000);
+    if (turn.type !== "gameOver") {
+      return
+    }
+  }
+}
+
+async function wait_for_game_end(ns) {
+  while (true) {
+    const turn = await ns.go.opponentNextTurn();
+    await ns.sleep(1_000);
+    if (turn.type === "gameOver") {
+      return
+    }
+  }
 }
 
 function line_block_to_square_grid(boards, width, pprint = true) {
@@ -32,7 +62,7 @@ function line_block_to_square_grid(boards, width, pprint = true) {
     }
     grid.push(row.join("\n"));
   }
-  
+
   const out = grid.join("\n\n");
   if (pprint) {
     return pretty(out);
